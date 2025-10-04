@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portal Berita</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-light:#f9f9fb; --bg-dark:#121212;
+      --text-light:#222; --text-dark:#eee;
+      --card-light:#fff; --card-dark:#1e1e1e;
+      --accent:#f7b500;
+      --accent-gradient:linear-gradient(135deg,#ffd84d,#f7b500);
+    }
+    body {margin:0;font-family:'Poppins',sans-serif;background:var(--bg-light);color:var(--text-light);transition:.3s;}
+    body.dark {background:var(--bg-dark);color:var(--text-dark);}
+
+    header {display:flex;justify-content:space-between;align-items:center;padding:1rem 1.5rem;backdrop-filter:blur(12px);background:rgba(255,255,255,.7);position:sticky;top:0;z-index:100;border-bottom:1px solid rgba(0,0,0,.05);}
+    body.dark header{background:rgba(18,18,18,.8);border-bottom:1px solid rgba(255,255,255,.1);}
+    header h2{margin:0;}
+    nav{display:flex;gap:.8rem;align-items:center;}
+    nav a{padding:.4rem 1rem;border-radius:12px;font-weight:500;text-decoration:none;color:inherit;transition:background .2s,color .2s;}
+    nav a.active,nav a:hover{background:var(--accent);color:#000;}
+
+    .search-toggle{
+      display:inline-flex;align-items:center;justify-content:center;
+      width:36px;height:36px;border-radius:50%;cursor:pointer;
+      box-shadow:0 2px 6px rgba(0,0,0,.12);
+      background:var(--card-light);
+      user-select:none; font-size:1rem;
+    }
+    body.dark .search-toggle{background:var(--card-dark);color:#fff;}
+
+    .theme-toggle{
+      position:fixed;bottom:20px;left:20px;
+      background:var(--card-light);border:none;border-radius:50%;
+      width:42px;height:42px;font-size:1.2rem;cursor:pointer;
+      display:flex;align-items:center;justify-content:center;
+      box-shadow:0 2px 6px rgba(0,0,0,.2);z-index:2000;
+    }
+    body.dark .theme-toggle{background:var(--card-dark);color:#fff;}
+
+    #searchBarWrap{
+      overflow:hidden;
+      max-height:0; opacity:0; transform:translateY(-8px);
+      transition:max-height .28s ease, opacity .28s ease, transform .28s ease, padding .28s ease;
+      padding:0 1.5rem;
+      max-width:800px;
+      margin:auto;
+    }
+    #searchBarWrap.open{
+      max-height:120px; opacity:1; transform:translateY(0); padding:.6rem 1.5rem 0;
+    }
+    #searchInput{
+      width:100%; padding:.7rem .95rem; border:1px solid #ddd; border-radius:16px; outline:none;
+      background:var(--card-light); color:inherit; font-family:inherit; font-size:.95rem;
+      box-shadow:0 4px 14px rgba(0,0,0,.06);
+    }
+    body.dark #searchInput{background:var(--card-dark);border-color:#333;color:var(--text-dark);}
+
+    main{padding:1.5rem;max-width:800px;margin:auto;}
+    .card{background:var(--card-light);margin-bottom:1.2rem;border-radius:18px;padding:1.2rem;box-shadow:0 4px 12px rgba(0,0,0,.05);}
+    body.dark .card{background:var(--card-dark);}
+    .card h3{margin:.3rem 0;}
+    .date{font-size:.85rem;color:#777;margin-bottom:.6rem;} body.dark .date{color:#aaa;}
+    .btn{display:inline-block;padding:.55rem 1.2rem;border-radius:14px;background:var(--accent-gradient);color:#000;font-weight:600;cursor:pointer;text-decoration:none;box-shadow:0 4px 12px rgba(0,0,0,.25);transition:transform .2s;}
+    .btn:hover{transform:scale(1.05);}
+    .thumb{width:100%;max-height:180px;object-fit:cover;border-radius:12px;margin-bottom:.8rem;}
+
+    .no-results{padding:1rem;text-align:center;opacity:.7}
+    footer{text-align:center;padding:1rem;font-size:.9rem;opacity:.7;}
+
+    #loadingOverlay{position:fixed;inset:0;background:rgba(255,255,255,.85);display:none;flex-direction:column;align-items:center;justify-content:center;font-family:'Poppins',sans-serif;font-weight:500;color:#333;z-index:3000;}
+    body.dark #loadingOverlay{background:rgba(18,18,18,.85);color:#eee;}
+    .loader{border:4px solid #f3f3f3;border-top:4px solid var(--accent);border-radius:50%;width:40px;height:40px;animation:spin 1s linear infinite;margin-bottom:1rem;}
+    @keyframes spin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}
+
+    #customModal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.5);z-index:4000;}
+    .modal-box{background:#fff!important;color:var(--text-light);padding:1.5rem;border-radius:16px;max-width:300px;width:90%;text-align:center;box-shadow:0 6px 18px rgba(0,0,0,.2);animation:fadeIn .3s ease;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+    body.dark .modal-box{background:#1e1e1e!important;color:var(--text-dark);}
+    @keyframes fadeIn{from{opacity:0;transform:scale(.9);}to{opacity:1;transform:scale(1);}}
+    .modal-box button{margin-top:1rem;align-self:center;}
+
+    @media (max-width: 600px) {
+      header {flex-direction: column;align-items: flex-start;padding: 0.8rem 1rem 0.5rem;gap: 0.3rem;}
+      header h2 {font-size: 1.2rem;margin-bottom: 0.2rem;}
+      nav {order: 2;width: 100%;justify-content: space-around;margin-top: 0.2rem;}
+      nav a {flex: 1;text-align: center;padding: 0.35rem 0.5rem;font-size: 0.8rem;border-radius: 8px;}
+      .search-toggle {position: absolute;top: 10px;right: 14px;width: 34px;height: 34px;}
+      .theme-toggle {top: auto !important;right: auto !important;left: 15px !important;bottom: 20px !important;}
+    }
+
+/* tambahan kecil untuk info dokumen peraturan */
+.doc-info {
+  font-size: .9rem;
+  color: #888;
+  margin-top: .5rem;
+  margin-bottom: .8rem; /* ← tambah jarak ke tombol */
+  display: flex;
+  align-items: center;
+  gap: .3rem;
+}
+body.dark .doc-info { color: #aaa; }
+
+  </style>
+</head>
+<body>
+  <header>
+    <h2><a href="index.html" style="text-decoration:none;color:inherit;">Portal Berita</a></h2>
+    <nav>
+      <a href="#" class="active" data-tab="Berita">Berita</a>
+      <a href="#" data-tab="Pengumuman">Pengumuman</a>
+      <a href="#" data-tab="Peraturan">Peraturan</a>
+      <span id="searchToggle" class="search-toggle" title="Cari">🔍</span>
+    </nav>
+  </header>
+
+  <div id="searchBarWrap">
+    <input id="searchInput" type="text" placeholder="Cari judul atau isi konten...">
+  </div>
+
+  <button class="theme-toggle" id="themeToggle">☀️</button>
+  <main>
+    <div id="contentList"></div>
+    <div id="noResults" class="no-results" style="display:none;">Tidak ada hasil untuk pencarian ini.</div>
+  </main>
+  <footer>Hak Cipta © 2025 Portal Berita</footer>
+
+  <div id="loadingOverlay"><div class="loader"></div><p>Memuat konten...</p></div>
+  <div id="customModal"><div class="modal-box"><p id="modalMessage">Pesan notifikasi</p><button onclick="closeModal()" class="btn">OK</button></div></div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
+    import { getFirestore, collection, getDocs, query, orderBy, where } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
+
+    const firebaseConfig={apiKey:"AIzaSyDEGklPNtv-LvKzSW0d3QZRo5DMLr1nY-Y",authDomain:"portal-berita-firebase.firebaseapp.com",projectId:"portal-berita-firebase",storageBucket:"portal-berita-firebase.firebasestorage.app",messagingSenderId:"598254123187",appId:"1:598254123187:web:9418bcbe0a00dda3c3d8c6"};
+    const app=initializeApp(firebaseConfig);const db=getFirestore(app);
+
+    const themeToggle=document.getElementById("themeToggle");
+    if(themeToggle){
+      themeToggle.addEventListener("click",()=>{
+        document.body.classList.toggle("dark");
+        localStorage.setItem("theme",document.body.classList.contains("dark")?"dark":"light");
+        themeToggle.textContent=document.body.classList.contains("dark")?"🌙":"☀️";
+      });
+      if(localStorage.getItem("theme")==="dark"){document.body.classList.add("dark");themeToggle.textContent="🌙";}
+    }
+
+    const contentList=document.getElementById("contentList");
+    const noResultsEl=document.getElementById("noResults");
+    const searchWrap=document.getElementById("searchBarWrap");
+    const searchInput=document.getElementById("searchInput");
+    const searchToggle=document.getElementById("searchToggle");
+
+    searchToggle.addEventListener("click",()=>{
+      const opening=!searchWrap.classList.contains("open");
+      searchWrap.classList.toggle("open");
+      if(opening){setTimeout(()=>searchInput.focus(),180);}
+      else{searchInput.value="";loadAllPosts();}
+    });
+
+    document.addEventListener("click",(e)=>{
+      const isInside=searchWrap.contains(e.target)||searchToggle.contains(e.target);
+      if(!isInside&&searchWrap.classList.contains("open")){
+        searchWrap.classList.remove("open");
+        searchInput.value="";
+        loadAllPosts();
+      }
+    });
+    document.addEventListener("keydown",(e)=>{
+      if(e.key==="Escape"&&searchWrap.classList.contains("open")){
+        searchWrap.classList.remove("open");
+        searchInput.value="";
+        loadAllPosts();
+      }
+    });
+
+    // 🧩 render card (per kategori)
+    function renderCard(id,d){
+      if(d.category==="Peraturan"){
+        const totalDocs = Array.isArray(d.links)? d.links.length : 0;
+        return `
+          <div class="card" data-category="${d.category}" data-title="${(d.title||'').toLowerCase()}" data-content="${(d.content||'').toLowerCase()}">
+            <h3>${d.title}</h3>
+            <div class="date">${d.createdAt?.toDate().toLocaleDateString("id-ID")||""}</div>
+            <p>${(d.content||"").substring(0,150)}...</p>
+            ${totalDocs>0?`<div class="doc-info">📄 ${totalDocs} dokumen</div>`:""}
+            <a href="detail.html?id=${id}" class="btn">Baca Selengkapnya</a>
+          </div>`;
+      } else {
+        const thumb=(d.images&&d.images.length>0)?`<img src="${d.images[0]}" class="thumb">`:(d.imageUrl?`<img src="${d.imageUrl}" class="thumb">`:"");
+        return `<div class="card" data-category="${d.category}" data-title="${(d.title||'').toLowerCase()}" data-content="${(d.content||'').toLowerCase()}">
+          ${thumb}
+          <h3>${d.title}</h3>
+          <div class="date">${d.createdAt?.toDate().toLocaleDateString("id-ID")||""}</div>
+          <p>${(d.content||"").substring(0,120)}...</p>
+          <a href="detail.html?id=${id}" class="btn">Baca Selengkapnya</a>
+        </div>`;
+      }
+    }
+
+    async function loadAllPosts(){
+      contentList.innerHTML="";
+      noResultsEl.style.display="none";
+      const categories=["Berita","Pengumuman","Peraturan"];
+      try{
+        for(const cat of categories){
+          const q=query(collection(db,"posts"),where("category","==",cat),where("status","==","Aktif"),orderBy("createdAt","desc"));
+          const snap=await getDocs(q);
+          snap.forEach(docSnap=>{
+            const d=docSnap.data();
+            contentList.insertAdjacentHTML("beforeend",renderCard(docSnap.id,d));
+          });
+        }
+      }catch(err){console.error(err);}
+    }
+
+    document.querySelectorAll("nav a").forEach(a=>{
+      a.addEventListener("click",(e)=>{
+        e.preventDefault();
+        document.querySelectorAll("nav a").forEach(n=>n.classList.remove("active"));
+        a.classList.add("active");
+        const cat=a.dataset.tab;
+        searchWrap.classList.remove("open");
+        searchInput.value="";
+        loadCategory(cat);
+      });
+    });
+
+    async function loadCategory(category){
+      contentList.innerHTML="";
+      noResultsEl.style.display="none";
+      try{
+        const q=query(collection(db,"posts"),where("category","==",category),where("status","==","Aktif"),orderBy("createdAt","desc"));
+        const snap=await getDocs(q);
+        if(snap.empty){noResultsEl.style.display="block";}
+        snap.forEach(docSnap=>{
+          const d=docSnap.data();
+          contentList.insertAdjacentHTML("beforeend",renderCard(docSnap.id,d));
+        });
+      }catch(err){console.error(err);}
+    }
+
+    function filterCards(q){
+      const cards=[...document.querySelectorAll(".card")];
+      if(!q){cards.forEach(c=>c.style.display="");noResultsEl.style.display="none";return;}
+      let visible=0;
+      cards.forEach(c=>{
+        const t=c.dataset.title||"",k=c.dataset.content||"";
+        const show=t.includes(q)||k.includes(q);
+        c.style.display=show?"":"none";if(show)visible++;
+      });
+      noResultsEl.style.display=visible?"none":"block";
+    }
+
+    searchInput.addEventListener("keyup", async (e)=>{
+      const q=e.target.value.trim().toLowerCase();
+      if(q){
+        const cards=document.querySelectorAll(".card");
+        const loadedCats=new Set([...cards].map(c=>c.dataset.category));
+        if(loadedCats.size<3) await loadAllPosts();
+        filterCards(q);
+      }else{
+        const active=document.querySelector("nav a.active");
+        if(active) loadCategory(active.dataset.tab);
+        else loadAllPosts();
+      }
+    });
+
+    loadAllPosts();
+  </script>
+</body>
+</html>
