@@ -197,6 +197,29 @@ const searchAdmin=document.getElementById("searchAdmin");
 const sortSelect=document.getElementById("sortSelect");
 const filterKategori=document.getElementById("filterKategori");
 
+function slugify(str){
+  return (str||"")
+    .toString()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g,"") // hilangkan diakritik
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g,"") // buang karakter non-alfanumerik
+    .trim()
+    .replace(/\s+/g,"-")         // spasi => dash
+    .replace(/-+/g,"-");         // dash ganda => tunggal
+}
+
+const fJudulEl = document.getElementById("fJudul");
+const fSlugEl  = document.getElementById("fSlug");
+
+if (fJudulEl && fSlugEl) {
+  fJudulEl.addEventListener("input", () => {
+    // hanya auto-isi kalau slug masih kosong (admin tetap bisa override manual)
+    if (!fSlugEl.value.trim()) {
+      fSlugEl.value = slugify(fJudulEl.value);
+    }
+  });
+}
+    
 let EDIT_ID=null;let currentImages=[];let removedImages=new Set();
 let allDocs=[]; // cache untuk data Firestore
 
@@ -413,6 +436,16 @@ function resetForm(){
   const wrap=document.getElementById("oldImages"); if(wrap) wrap.innerHTML="";
   document.getElementById("fKategori").dispatchEvent(new Event("change"));
 }
+    
+/* === CEK SLUG UNIK === */
+async function isSlugUsed(slug, currentId=null){
+  if(!slug) return false; // slug kosong, abaikan
+  const q = query(collection(db, "posts"), where("slug", "==", slug));
+  const snap = await getDocs(q);
+  if(snap.empty) return false;
+  // Jika sedang edit, pastikan bukan dokumen yang sama
+  return snap.docs.some(docSnap => docSnap.id !== currentId);
+}
 
 /* === SIMPAN DATA === */
 async function submitForm(){
@@ -421,6 +454,15 @@ async function submitForm(){
   const content=document.getElementById("fIsi").value.trim();
   const status=document.getElementById("fStatus").value;
   const slug=document.getElementById("fSlug").value.trim();
+  // 🔍 Cek slug unik sebelum menyimpan
+  if (slug) {
+    const used = await isSlugUsed(slug, EDIT_ID);
+    if (used) {
+      showModal("Slug '"+slug+"' sudah dipakai oleh konten lain. Gunakan slug berbeda.");
+      return; // hentikan proses simpan
+    }
+  }
+
   let payload={title,category,content,status,slug,createdAt:serverTimestamp(),author:auth.currentUser.email};
 
   if(category==="Peraturan"){
