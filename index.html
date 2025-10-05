@@ -176,8 +176,11 @@ body.dark .doc-info { color: #aaa; }
       }
     });
 
-    // 🧩 render card (per kategori)
     function renderCard(id,d){
+      const href = (d.slug && d.slug.trim())
+        ? `detail.html?slug=${encodeURIComponent(d.slug)}`
+        : `detail.html?id=${id}`;
+
       if(d.category==="Peraturan"){
         const totalDocs = Array.isArray(d.links)? d.links.length : 0;
         return `
@@ -186,7 +189,7 @@ body.dark .doc-info { color: #aaa; }
             <div class="date">${d.createdAt?.toDate().toLocaleDateString("id-ID")||""}</div>
             <p>${(d.content||"").substring(0,150)}...</p>
             ${totalDocs>0?`<div class="doc-info">📄 ${totalDocs} dokumen</div>`:""}
-            <a href="detail.html?id=${id}" class="btn">Baca Selengkapnya</a>
+            <a href="${href}" class="btn">Baca Selengkapnya</a>
           </div>`;
       } else {
         const thumb=(d.images&&d.images.length>0)?`<img src="${d.images[0]}" class="thumb">`:(d.imageUrl?`<img src="${d.imageUrl}" class="thumb">`:"");
@@ -195,7 +198,7 @@ body.dark .doc-info { color: #aaa; }
           <h3>${d.title}</h3>
           <div class="date">${d.createdAt?.toDate().toLocaleDateString("id-ID")||""}</div>
           <p>${(d.content||"").substring(0,120)}...</p>
-          <a href="detail.html?id=${id}" class="btn">Baca Selengkapnya</a>
+          <a href="${href}" class="btn">Baca Selengkapnya</a>
         </div>`;
       }
     }
