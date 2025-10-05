@@ -79,7 +79,8 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
-    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, collection, query, where, getDocs, limit } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
+
 
     const firebaseConfig={apiKey:"AIzaSyDEGklPNtv-LvKzSW0d3QZRo5DMLr1nY-Y",authDomain:"portal-berita-firebase.firebaseapp.com",projectId:"portal-berita-firebase",storageBucket:"portal-berita-firebase.firebasestorage.app",messagingSenderId:"598254123187",appId:"1:598254123187:web:9418bcbe0a00dda3c3d8c6"};
     const app=initializeApp(firebaseConfig);const db=getFirestore(app);
@@ -93,15 +94,40 @@
     window.closeModal=()=>{document.getElementById("customModal").style.display="none";}
 
     async function loadDetail(){
-      const id=new URLSearchParams(window.location.search).get("id");
-      if(!id){document.getElementById("detailContainer").innerHTML="❌ Tidak ada ID berita.";return;}
+      const params = new URLSearchParams(window.location.search);
+      const id    = params.get("id");
+      const slug  = params.get("slug");
+
+      if(!id && !slug){
+        document.getElementById("detailContainer").innerHTML="❌ Tidak ada ID atau slug.";
+        return;
+      }
+
       showLoading();
       try{
-        const snap=await getDoc(doc(db,"posts",id));
+        let d=null;
+
+        if (id) {
+          // jalur lama, tetap didukung
+          const snap = await getDoc(doc(db,"posts",id));
+          if (snap.exists()) d = snap.data();
+        } else if (slug) {
+          // jalur baru: cari berdasarkan slug (ambil 1 teratas)
+          const q  = query(collection(db,"posts"), where("slug","==",slug), limit(1));
+          const qs = await getDocs(q);
+          if (!qs.empty) d = qs.docs[0].data();
+        }
+
         hideLoading();
-        if(!snap.exists()){document.getElementById("detailContainer").innerHTML="❌ Berita tidak ditemukan.";return;}
-        const d=snap.data();
-        if(d.status!=="Aktif"){document.getElementById("detailContainer").innerHTML="<div class='card'><p>Konten tidak tersedia.</p></div>";return;}
+
+        if (!d) {
+          document.getElementById("detailContainer").innerHTML="❌ Berita tidak ditemukan.";
+          return;
+        }
+        if(d.status!=="Aktif"){
+          document.getElementById("detailContainer").innerHTML="<div class='card'><p>Konten tidak tersedia.</p></div>";
+          return;
+        }
 
         let imageAtas="";let imageBawah="";
         if(d.images&&d.images.length>0){
@@ -113,7 +139,6 @@
           imageAtas=`<img src="${d.imageUrl}" class="detail-img" onclick="showLightbox(this.src)">`;
         }
 
-        // --- Dokumen Terkait (Peraturan) dengan warna ikon + efek hover ---
         let docSection="";
         if(d.category==="Peraturan" && Array.isArray(d.links) && d.links.length>0){
           const items=d.links.map(f=>{
@@ -137,12 +162,16 @@
             ${imageAtas}
             <h2>${d.title}</h2>
             <div class="date">${d.createdAt?.toDate().toLocaleDateString("id-ID")||""}</div>
-            <p>${d.content.replace(/\n/g,"<br>")}</p>
+            <p>${(d.content||"").replace(/\n/g,"<br>")}</p>
             ${docSection}
             ${imageBawah}
           </div>`;
-      }catch(err){hideLoading();showModal("Gagal memuat detail: "+err.message);}
+      }catch(err){
+        hideLoading();
+        showModal("Gagal memuat detail: "+err.message);
+      }
     }
+
     loadDetail();
 
     window.showLightbox=(src)=>{document.getElementById('lightbox-img').src=src;document.getElementById('lightbox').style.display='flex';}
