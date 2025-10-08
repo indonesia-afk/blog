@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
   <meta charset="utf-8">
-  <title>t-o-m.my.id — Admin</title>
+  <title>news.t-o-m.my.id — Admin</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
@@ -79,7 +79,7 @@
   </style>
 </head>
 <body>
-  <header><h1>t-o-m.my.id — Admin</h1></header>
+  <header><h1>Admin News</h1></header>
   <main>
     <!-- LOGIN -->
     <div id="loginCard" class="card">
@@ -463,7 +463,8 @@ async function submitForm(){
     }
   }
 
-  let payload={title,category,content,status,slug,createdAt:serverTimestamp(),author:auth.currentUser.email};
+  let payload={title,category,content,status,slug,author:auth.currentUser.email};
+
 
   if(category==="Peraturan"){
     // Tetap: mengelola link dokumen
@@ -497,11 +498,17 @@ async function submitForm(){
     payload.images=imageUrls;
   }
 
-  try{
-    if(EDIT_ID){await updateDoc(doc(db,"posts",EDIT_ID),payload);}
-    else{await addDoc(collection(db,"posts"),payload);}
-    showModal("Konten berhasil disimpan.");resetForm();reloadList();
-  }catch(err){showModal("Gagal menyimpan: "+err.message);}
+try{
+  if(EDIT_ID){
+    payload.updatedAt = serverTimestamp();           // ← tandai waktu edit/publish ulang
+    await updateDoc(doc(db,"posts",EDIT_ID),payload);
+  }else{
+    payload.createdAt = serverTimestamp();           // ← hanya saat buat baru
+    await addDoc(collection(db,"posts"),payload);
+  }
+  showModal("Konten berhasil disimpan.");resetForm();reloadList();
+}catch(err){showModal("Gagal menyimpan: "+err.message);}
+
 }
 </script>
 </body>
