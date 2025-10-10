@@ -30,6 +30,35 @@ const searchInput = document.getElementById("searchInput");
 const searchToggle = document.getElementById("searchToggle");
 const cacheStatus = document.getElementById("cacheStatus");
 
+// ==== PERIKSA JIKA ADA FLAG "FORCE_HOME" ====
+if (sessionStorage.getItem("forceHome") === "true") {
+    console.log("🏠 Force kembali ke halaman awal (kategori Berita)");
+
+    // Hapus semua state agar benar-benar segar
+    sessionStorage.clear();
+
+    // Set kategori default ke Berita
+    sessionStorage.setItem("lastCategory", "Berita");
+
+    // Tutup pencarian & kosongkan input
+    const sWrap = document.getElementById("searchBarWrap");
+    const sInput = document.getElementById("searchInput");
+    if (sWrap) sWrap.classList.remove("open");
+    if (sInput) sInput.value = "";
+
+    // Jalankan load kategori awal secara langsung
+    window.addEventListener("load", async () => {
+        currentCategory = "Berita";
+        setActiveTab("Berita");
+        resetPagination();
+        await loadCategory("Berita");
+        window.scrollTo({ top: 0, behavior: "auto" });
+    });
+
+    // Bersihkan flag agar tidak berulang
+    sessionStorage.removeItem("forceHome");
+}
+
 let currentCategory = "Berita", lastVisible = null, isLoading = false, reachedEnd = false;
 const PAGE_SIZE = 10;
 
@@ -127,6 +156,35 @@ searchInput.addEventListener("input", e => {
     else found.forEach(d => contentList.insertAdjacentHTML("beforeend", renderCard(d.id, d)));
 });
 
+// ==== Reset scroll-restore saat judul diklik (INDEX) ====
+
+// Listener ini boleh berdiri sendiri (tidak perlu menunggu DOMContentLoaded)
+const homeTitle = document.getElementById('homeTitle');
+if (homeTitle) {
+    homeTitle.addEventListener('click', (e) => {
+        e.preventDefault();
+        // Set flag lebih awal agar terdeteksi segera setelah reload
+        sessionStorage.setItem('ignoreScrollRestore', 'true');
+        window.location.href = 'index.html';
+    });
+}
+
+// ==== Klik judul situs → selalu ke beranda awal ====
+document.addEventListener("DOMContentLoaded", () => {
+    const homeTitle = document.getElementById("homeTitle");
+    if (homeTitle) {
+        homeTitle.addEventListener("click", (e) => {
+            e.preventDefault();
+
+            // Set flag kuat agar index tahu harus kembali ke Berita
+            sessionStorage.setItem("forceHome", "true");
+
+            // Navigasi ke halaman utama
+            window.location.href = "index.html";
+        });
+    }
+});
+
 /* ===== UTIL: Setel tab aktif di nav sesuai kategori ===== */
 function setActiveTab(cat) {
     document.querySelectorAll("nav a").forEach(n => {
@@ -159,11 +217,41 @@ document.querySelectorAll("nav a").forEach(a => {
 
 /* ===== STARTUP: pulihkan kalau dari detail, jika tidak ya load normal ===== */
 window.addEventListener("load", async () => {
+    // ---- [1] KLIK JUDUL → SELALU KE "AWAL" (Berita, top, tanpa pencarian) ----
+    const ignoreScroll = sessionStorage.getItem("ignoreScrollRestore") === "true";
+    if (ignoreScroll) {
+        console.log("🔁 Navigasi dari judul situs — paksa ke halaman awal");
+
+        // bersihkan flag & state pemulih
+        sessionStorage.removeItem("ignoreScrollRestore");
+        sessionStorage.removeItem("fromDetail");
+        sessionStorage.removeItem("pageState");
+        sessionStorage.removeItem("scrollPosition");
+
+        // paksa kategori default = Berita (index awal)
+        sessionStorage.setItem("lastCategory", "Berita");
+        currentCategory = "Berita";
+        setActiveTab("Berita");
+        resetPagination();
+
+        // tutup bar pencarian dan kosongkan query (agar tidak menimpa hasil)
+        if (typeof searchWrap !== "undefined" && searchWrap.classList.contains("open")) {
+            searchWrap.classList.remove("open");
+        }
+        if (typeof searchInput !== "undefined") {
+            searchInput.value = "";
+        }
+
+        await loadCategory("Berita");
+        window.scrollTo({ top: 0, behavior: "auto" });
+        return; // hentikan semua proses restore lainnya
+    }
+
+    // ---- [2] Logika restore normal (dari detail) tetap seperti punyamu ----
     const fromDetail = sessionStorage.getItem("fromDetail") === "yes";
     const saved = sessionStorage.getItem("pageState");
     const lastCategory = sessionStorage.getItem("lastCategory") || "Berita";
 
-    // Helper untuk load normal saat bukan dari detail
     const loadNormal = async (cat) => {
         currentCategory = cat;
         setActiveTab(cat);
@@ -176,30 +264,27 @@ window.addEventListener("load", async () => {
         return;
     }
 
-    // Pulihkan
     try {
         const { scroll, category, loadedCount } = JSON.parse(saved);
         currentCategory = category || lastCategory;
         setActiveTab(currentCategory);
         resetPagination();
 
-        // Muat ulang sampai jumlah card minimal = loadedCount (atau data habis)
         while (document.querySelectorAll("#contentList .card").length < loadedCount && !reachedEnd) {
             await loadCategory(currentCategory, true);
         }
 
-        // Scroll setelah konten cukup
         setTimeout(() => {
             window.scrollTo({ top: scroll, behavior: "auto" });
             console.log(`✅ Pulihkan: ${currentCategory}, cards=${loadedCount}, scroll=${scroll}px`);
         }, 300);
-
     } catch (err) {
         console.warn("Gagal memulihkan state:", err);
         await loadNormal(lastCategory);
     }
 
-    // Bersih-bersih flag
     sessionStorage.removeItem("fromDetail");
     sessionStorage.removeItem("pageState");
 });
+
+

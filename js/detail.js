@@ -88,6 +88,35 @@ async function loadDetail() {
 loadDetail();
 window.showLightbox = (src) => { document.getElementById('lightbox-img').src = src; document.getElementById('lightbox').style.display = 'flex'; }
 
+// ==== Reset scroll-restore saat judul diklik (INDEX) ====
+
+// Listener ini boleh berdiri sendiri (tidak perlu menunggu DOMContentLoaded)
+const homeTitle = document.getElementById('homeTitle');
+if (homeTitle) {
+    homeTitle.addEventListener('click', (e) => {
+        e.preventDefault();
+        // Set flag lebih awal agar terdeteksi segera setelah reload
+        sessionStorage.setItem('ignoreScrollRestore', 'true');
+        window.location.href = 'index.html';
+    });
+}
+
+// ==== Klik judul situs → selalu ke beranda awal ====
+document.addEventListener("DOMContentLoaded", () => {
+    const homeTitle = document.getElementById("homeTitle");
+    if (homeTitle) {
+        homeTitle.addEventListener("click", (e) => {
+            e.preventDefault();
+
+            // Set flag kuat agar index tahu harus kembali ke Berita
+            sessionStorage.setItem("forceHome", "true");
+
+            // Navigasi ke halaman utama
+            window.location.href = "index.html";
+        });
+    }
+});
+
 /* ===== TOMBOL KEMBALI (set flag + kembali) ===== */
 const backBtn = document.getElementById("backBtn");
 backBtn.addEventListener("click", (e) => {
