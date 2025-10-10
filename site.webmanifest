@@ -56,7 +56,6 @@
       "type": "image/png",
       "purpose": "any maskable"
     },
-    // Favicon ICO
     {
       "src": "https://indonesia-afk.github.io/blog/assets/favicon.ico",
       "sizes": "any",
