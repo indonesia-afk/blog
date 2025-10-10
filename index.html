@@ -495,8 +495,83 @@
             else found.forEach(d => contentList.insertAdjacentHTML("beforeend", renderCard(d.id, d)));
         });
 
-        /* INITIAL LOAD */
-        loadCategory("Berita");
+        /* ===== UTIL: Setel tab aktif di nav sesuai kategori ===== */
+        function setActiveTab(cat) {
+            document.querySelectorAll("nav a").forEach(n => {
+                n.classList.toggle("active", n.dataset.tab === cat);
+            });
+        }
+
+        /* ===== SIMPAN STATE SAAT KLIK "BACA SELENGKAPNYA" ===== */
+        document.addEventListener("click", (e) => {
+            const link = e.target.closest("a.btn");
+            if (link && link.textContent.includes("Baca Selengkapnya")) {
+                const loadedCount = document.querySelectorAll("#contentList .card").length;
+                const state = {
+                    scroll: window.scrollY,
+                    category: currentCategory,
+                    loadedCount // ← simpan jumlah kartu yang sudah tampil (lebih akurat dari pageCount)
+                };
+                sessionStorage.setItem("pageState", JSON.stringify(state));
+                sessionStorage.setItem("lastCategory", currentCategory);
+                sessionStorage.setItem("fromDetail", "yes");
+            }
+        });
+
+        /* ===== SIMPAN KATEGORI TERAKHIR SAAT GANTI TAB ===== */
+        document.querySelectorAll("nav a").forEach(a => {
+            a.addEventListener("click", () => {
+                sessionStorage.setItem("lastCategory", a.dataset.tab);
+            });
+        });
+
+        /* ===== STARTUP: pulihkan kalau dari detail, jika tidak ya load normal ===== */
+        window.addEventListener("load", async () => {
+            const fromDetail = sessionStorage.getItem("fromDetail") === "yes";
+            const saved = sessionStorage.getItem("pageState");
+            const lastCategory = sessionStorage.getItem("lastCategory") || "Berita";
+
+            // Helper untuk load normal saat bukan dari detail
+            const loadNormal = async (cat) => {
+                currentCategory = cat;
+                setActiveTab(cat);
+                resetPagination();
+                await loadCategory(cat);
+            };
+
+            if (!fromDetail || !saved) {
+                await loadNormal(lastCategory);
+                return;
+            }
+
+            // Pulihkan
+            try {
+                const { scroll, category, loadedCount } = JSON.parse(saved);
+                currentCategory = category || lastCategory;
+                setActiveTab(currentCategory);
+                resetPagination();
+
+                // Muat ulang sampai jumlah card minimal = loadedCount (atau data habis)
+                while (document.querySelectorAll("#contentList .card").length < loadedCount && !reachedEnd) {
+                    await loadCategory(currentCategory, true);
+                }
+
+                // Scroll setelah konten cukup
+                setTimeout(() => {
+                    window.scrollTo({ top: scroll, behavior: "auto" });
+                    console.log(`✅ Pulihkan: ${currentCategory}, cards=${loadedCount}, scroll=${scroll}px`);
+                }, 300);
+
+            } catch (err) {
+                console.warn("Gagal memulihkan state:", err);
+                await loadNormal(lastCategory);
+            }
+
+            // Bersih-bersih flag
+            sessionStorage.removeItem("fromDetail");
+            sessionStorage.removeItem("pageState");
+        });
+
     </script>
 </body>
 
