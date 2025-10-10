@@ -333,7 +333,7 @@
 <body>
   <header>
     <h2><a href="index.html" style="text-decoration:none;color:inherit;">news.t-o-m.my.id</a></h2>
-    <a href="javascript:history.back()" class="btn">Kembali</a>
+    <a id="backBtn" href="#" class="btn">Kembali</a>
   </header>
 
   <button class="theme-toggle" id="themeToggle">☀️</button>
@@ -445,6 +445,27 @@
 
     loadDetail();
     window.showLightbox = (src) => { document.getElementById('lightbox-img').src = src; document.getElementById('lightbox').style.display = 'flex'; }
+
+    /* ===== TOMBOL KEMBALI (set flag + kembali) ===== */
+    const backBtn = document.getElementById("backBtn");
+    backBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      // Tandai agar index memulihkan state
+      sessionStorage.setItem("fromDetail", "yes");
+
+      // Kalau user masuk ke detail langsung (tanpa state), sediakan default minimal
+      const lastCategory = sessionStorage.getItem("lastCategory") || "Berita";
+      if (!sessionStorage.getItem("pageState")) {
+        sessionStorage.setItem(
+          "pageState",
+          JSON.stringify({ scroll: 0, category: lastCategory, loadedCount: 10 })
+        );
+      }
+
+      window.location.href = "index.html";
+    });
+
+
   </script>
 </body>
 
