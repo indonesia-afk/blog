@@ -1,33 +1,70 @@
 {
-  "name": "News — by @TOMMY",
-  "short_name": "News t-o-m.my.id",
-  "start_url": "https://news.t-o-m.my.id/",
-  "scope": "https://news.t-o-m.my.id/",
-  "display": "standalone",
-  "orientation": "portrait-primary",
-  "background_color": "#ffffff",
-  "theme_color": "#ffffff",
-  "description": "News by t-o-m.my.id",
-  "icons": [
+  "name": "News — by @TOMMY",
+  "short_name": "News t-o-m.my.id",
+  "start_url": "https://news.t-o-m.my.id/?source=pwa",
+  "scope": "https://news.t-o-m.my.id/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#FFFFFF",
+  "theme_color": "#003366",
+  "description": "News by t-o-m.my.id",
+  "icons": [
+    // Standard Ikon (untuk perangkat lama)
     {
-      "src": "https://indonesia-afk.github.io/blog/favicon-180x180.png",
-      "sizes": "180x180",
+      "src": "https://indonesia-afk.github.io/blog/assets/favicon-72x72.png",
+      "sizes": "72x72",
       "type": "image/png"
     },
     {
-      "src": "https://indonesia-afk.github.io/blog/favicon-192x192.png",
-      "sizes": "192x192",
+      "src": "https://indonesia-afk.github.io/blog/assets/favicon-96x96.png",
+      "sizes": "96x96",
       "type": "image/png"
     },
     {
-      "src": "https://indonesia-afk.github.io/blog/favicon-512x512.png",
-      "sizes": "512x512",
+      "src": "https://indonesia-afk.github.io/blog/assets/favicon-128x128.png",
+      "sizes": "128x128",
       "type": "image/png"
     },
     {
-      "src": "https://indonesia-afk.github.io/blog/favicon.ico",
-      "sizes": "any",
-      "type": "image/x-icon"
-    }
-  ]
+      "src": "https://indonesia-afk.github.io/blog/assets/favicon-144x144.png",
+      "sizes": "144x144",
+      "type": "image/png"
+    },
+    // Ukuran Utama & Ikon Apple Touch
+    {
+      "src": "https://indonesia-afk.github.io/blog/assets/favicon-180x180.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    // Ikon Utama (Any) dan Maskable Icon
+    {
+      "src": "https://indonesia-afk.github.io/blog/assets/favicon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable" // Penting untuk Ikon Adaptif Android
+    },
+    {
+      "src": "https://indonesia-afk.github.io/blog/assets/favicon-256x256.png",
+      "sizes": "256x256",
+      "type": "image/png"
+    },
+    {
+      "src": "https://indonesia-afk.github.io/blog/assets/favicon-384x384.png",
+      "sizes": "384x384",
+      "type": "image/png"
+    },
+    // Ikon Resolusi Tinggi (Any) dan Maskable Icon
+    {
+      "src": "https://indonesia-afk.github.io/blog/assets/favicon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable" // Penting untuk Ikon Adaptif Android
+    },
+    // Favicon ICO
+    {
+      "src": "https://indonesia-afk.github.io/blog/assets/favicon.ico",
+      "sizes": "any",
+      "type": "image/x-icon"
+    }
+  ]
 }
