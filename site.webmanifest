@@ -1,0 +1,33 @@
+{
+  "name": "News — by @TOMMY",
+  "short_name": "News t-o-m.my.id",
+  "start_url": "https://news.t-o-m.my.id/",
+  "scope": "https://news.t-o-m.my.id/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "description": "News by t-o-m.my.id",
+  "icons": [
+    {
+      "src": "https://indonesia-afk.github.io/blog/favicon-180x180.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "https://indonesia-afk.github.io/blog/favicon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://indonesia-afk.github.io/blog/favicon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "https://indonesia-afk.github.io/blog/favicon.ico",
+      "sizes": "any",
+      "type": "image/x-icon"
+    }
+  ]
+}
