@@ -5,12 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>news.t-o-m.my.id</title>
-
-    <!-- Font utama & font retro -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&family=Share+Tech+Mono&display=swap"
         rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
-
     <style>
         :root {
             --bg-light: #f9f9fb;
@@ -56,13 +52,8 @@
 
         header h2 {
             margin: 0;
-        }
-
-        /* font header retro */
-        header h2 {
             font-family: 'Share Tech Mono', monospace;
-            font-size: 0.9rem;
-            /* sedikit lebih kecil */
+            font-size: .9rem;
         }
 
         nav {
@@ -274,79 +265,50 @@
             }
         }
 
-        #customModal {
-            position: fixed;
-            inset: 0;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            background: rgba(0, 0, 0, .5);
-            z-index: 4000;
-        }
-
-        .modal-box {
-            background: #fff !important;
-            color: var(--text-light);
-            padding: 1.5rem;
-            border-radius: 16px;
-            max-width: 300px;
-            width: 90%;
-            text-align: center;
-            box-shadow: 0 6px 18px rgba(0, 0, 0, .2);
-            animation: fadeIn .3s ease;
+        .doc-info {
+            font-size: .9rem;
+            color: #888;
+            margin-top: .5rem;
+            margin-bottom: .8rem;
             display: flex;
-            flex-direction: column;
             align-items: center;
-            justify-content: center;
+            gap: .3rem;
         }
 
-        body.dark .modal-box {
-            background: #1e1e1e !important;
-            color: #fff;
+        body.dark .doc-info {
+            color: #aaa;
         }
 
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: scale(.9);
-            }
-
-            to {
-                opacity: 1;
-                transform: scale(1);
-            }
+        .card p {
+            overflow-wrap: anywhere;
+            word-break: break-word;
         }
 
-        .modal-box button {
-            margin-top: 1rem;
-            align-self: center;
-        }
-
-        @media (max-width: 600px) {
+        @media(max-width:600px) {
             header {
                 flex-direction: column;
                 align-items: flex-start;
-                padding: 0.8rem 1rem 0.5rem;
-                gap: 0.3rem;
+                padding: .8rem 1rem .5rem;
+                gap: .3rem;
             }
 
             header h2 {
                 font-size: 1.2rem;
-                margin-bottom: 0.2rem;
+                margin-bottom: .2rem;
             }
 
             nav {
                 order: 2;
                 width: 100%;
                 justify-content: space-around;
-                margin-top: 0.2rem;
+                margin-top: .2rem;
             }
 
             nav a {
                 flex: 1;
                 text-align: center;
-                padding: 0.35rem 0.5rem;
-                font-size: 0.8rem;
+                padding: .35rem .5rem;
+                font-size: .8rem;
                 border-radius: 8px;
             }
 
@@ -359,33 +321,23 @@
             }
 
             .theme-toggle {
-                top: auto !important;
-                right: auto !important;
                 left: 15px !important;
                 bottom: 20px !important;
             }
         }
 
-        /* tambahan kecil untuk info dokumen peraturan */
-        .doc-info {
-            font-size: .9rem;
-            color: #888;
-            margin-top: .5rem;
-            margin-bottom: .8rem;
-            /* ← tambah jarak ke tombol */
-            display: flex;
-            align-items: center;
-            gap: .3rem;
+        #cacheStatus {
+            position: fixed;
+            bottom: 10px;
+            right: 20px;
+            font-size: .8rem;
+            opacity: .6;
         }
 
-        body.dark .doc-info {
-            color: #aaa;
-        }
-
-        /* Mencegah teks atau URL panjang melewati batas card */
-        .card p {
-            overflow-wrap: anywhere;
-            word-break: break-word;
+        #loadMoreBtn {
+            padding: 0.3rem 0.75rem;
+            font-size: 0.8rem;
+            border-radius: 10px;
         }
     </style>
 </head>
@@ -411,24 +363,23 @@
         <div id="noResults" class="no-results" style="display:none;">Tidak ada hasil untuk pencarian ini.</div>
     </main>
     <footer>Hak Cipta © 2025 t-o-m.my.id</footer>
-
-    <div id="loadingOverlay">
-        <div class="loader"></div>
-        <p>Memuat konten...</p>
-    </div>
-    <div id="customModal">
-        <div class="modal-box">
-            <p id="modalMessage">Pesan notifikasi</p><button onclick="closeModal()" class="btn">OK</button>
-        </div>
-    </div>
+    <div id="cacheStatus">Memuat semua berita...</div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
-        import { getFirestore, collection, getDocs, query, orderBy, where } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, query, orderBy, where, limit, startAfter } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
 
-        const firebaseConfig = { apiKey: "AIzaSyDEGklPNtv-LvKzSW0d3QZRo5DMLr1nY-Y", authDomain: "portal-berita-firebase.firebaseapp.com", projectId: "portal-berita-firebase", storageBucket: "portal-berita-firebase.firebasestorage.app", messagingSenderId: "598254123187", appId: "1:598254123187:web:9418bcbe0a00dda3c3d8c6" };
-        const app = initializeApp(firebaseConfig); const db = getFirestore(app);
+        const app = initializeApp({
+            apiKey: "AIzaSyDEGklPNtv-LvKzSW0d3QZRo5DMLr1nY-Y",
+            authDomain: "portal-berita-firebase.firebaseapp.com",
+            projectId: "portal-berita-firebase",
+            storageBucket: "portal-berita-firebase.firebasestorage.app",
+            messagingSenderId: "598254123187",
+            appId: "1:598254123187:web:9418bcbe0a00dda3c3d8c6"
+        });
+        const db = getFirestore(app);
 
+        /* THEME */
         const themeToggle = document.getElementById("themeToggle");
         if (themeToggle) {
             themeToggle.addEventListener("click", () => {
@@ -439,148 +390,113 @@
             if (localStorage.getItem("theme") === "dark") { document.body.classList.add("dark"); themeToggle.textContent = "🌙"; }
         }
 
+        /* ELEMENTS */
         const contentList = document.getElementById("contentList");
         const noResultsEl = document.getElementById("noResults");
         const searchWrap = document.getElementById("searchBarWrap");
         const searchInput = document.getElementById("searchInput");
         const searchToggle = document.getElementById("searchToggle");
+        const cacheStatus = document.getElementById("cacheStatus");
 
-        searchToggle.addEventListener("click", () => {
-            const opening = !searchWrap.classList.contains("open");
-            searchWrap.classList.toggle("open");
-            if (opening) { setTimeout(() => searchInput.focus(), 180); }
-            else { searchInput.value = ""; loadAllPosts(); }
-        });
+        let currentCategory = "Berita", lastVisible = null, isLoading = false, reachedEnd = false;
+        const PAGE_SIZE = 10;
 
-        document.addEventListener("click", (e) => {
-            const isInside = searchWrap.contains(e.target) || searchToggle.contains(e.target);
-            if (!isInside && searchWrap.classList.contains("open")) {
-                searchWrap.classList.remove("open");
-                searchInput.value = "";
-                loadAllPosts();
-            }
-        });
-        document.addEventListener("keydown", (e) => {
-            if (e.key === "Escape" && searchWrap.classList.contains("open")) {
-                searchWrap.classList.remove("open");
-                searchInput.value = "";
-                loadAllPosts();
-            }
-        });
+        /* LOAD MORE BUTTON */
+        const loadMoreContainer = document.createElement("div");
+        loadMoreContainer.style.textAlign = "center";
+        loadMoreContainer.style.margin = "1.8rem 0";
+        loadMoreContainer.innerHTML = `<a id="loadMoreBtn" class="btn">Tampilkan Lebih Banyak</a>`;
+        contentList.insertAdjacentElement("afterend", loadMoreContainer);
+        const loadMoreBtn = document.getElementById("loadMoreBtn");
+        loadMoreBtn.addEventListener("click", () => { if (!isLoading && !reachedEnd) { if (currentCategory) loadCategory(currentCategory, true); else loadAllPosts(true); } });
 
-        /* === Tambahan kecil: formatter WIB TANPA mengubah struktur === */
         function formatWIB(ts) {
             try {
-                if (!ts) return "";
-                const d = (typeof ts.toDate === "function") ? ts.toDate() : new Date(ts);
-                const tgl = d.toLocaleDateString("id-ID"); // contoh: 7/10/2025
-                const jam = d.toLocaleTimeString("id-ID", { hour: '2-digit', minute: '2-digit', hour12: false }).replace(":", "."); // 22.15
-                return `${tgl} ${jam} WIB`;
+                if (!ts) return ""; const d = (typeof ts.toDate === "function") ? ts.toDate() : new Date(ts);
+                return `${d.toLocaleDateString("id-ID")} ${d.toLocaleTimeString("id-ID", { hour: '2-digit', minute: '2-digit', hour12: false }).replace(":", ".")} WIB`;
             } catch { return ""; }
         }
-
         function renderCard(id, d) {
-            const href = (d.slug && d.slug.trim())
-                ? `detail.html?slug=${encodeURIComponent(d.slug)}`
-                : `detail.html?id=${id}`;
-
+            const href = (d.slug && d.slug.trim()) ? `detail.html?slug=${encodeURIComponent(d.slug)}` : `detail.html?id=${id}`;
+            const thumb = (d.images && d.images.length > 0) ? `<img src="${d.images[0]}" class="thumb">` : (d.imageUrl ? `<img src="${d.imageUrl}" class="thumb">` : "");
             if (d.category === "Peraturan") {
                 const totalDocs = Array.isArray(d.links) ? d.links.length : 0;
-                return `
-          <div class="card" data-category="${d.category}" data-title="${(d.title || '').toLowerCase()}" data-content="${(d.content || '').toLowerCase()}">
-            <h3>${d.title}</h3>
-            <div class="date">
-              ${formatWIB(d.createdAt)}
-              ${d.updatedAt ? `<div style="font-size:.6rem;opacity:.7;">di-edit pada ${formatWIB(d.updatedAt)}</div>` : ""}
-            </div>
-            <p>${(d.content || "").substring(0, 150)}...</p>
-            ${totalDocs > 0 ? `<div class="doc-info">📄 ${totalDocs} dokumen</div>` : ""}
-            <a href="${href}" class="btn">Baca Selengkapnya</a>
-          </div>`;
-            } else {
-                const thumb = (d.images && d.images.length > 0) ? `<img src="${d.images[0]}" class="thumb">` : (d.imageUrl ? `<img src="${d.imageUrl}" class="thumb">` : "");
-                return `<div class="card" data-category="${d.category}" data-title="${(d.title || '').toLowerCase()}" data-content="${(d.content || '').toLowerCase()}">
-          ${thumb}
-          <h3>${d.title}</h3>
-          <div class="date">
-            ${formatWIB(d.createdAt)}
-            ${d.updatedAt ? `<div style="font-size:.6rem;opacity:.7;">di-edit pada ${formatWIB(d.updatedAt)}</div>` : ""}
-          </div>
-          <p>${(d.content || "").substring(0, 120)}...</p>
-          <a href="${href}" class="btn">Baca Selengkapnya</a>
-        </div>`;
+                return `<div class="card"><h3>${d.title}</h3><div class="date">${formatWIB(d.createdAt)}${d.updatedAt ? `<div style="font-size:.6rem;opacity:.7;">di-edit pada ${formatWIB(d.updatedAt)}</div>` : ""}</div>
+    <p>${(d.content || "").substring(0, 150)}...</p>${totalDocs > 0 ? `<div class="doc-info">📄 ${totalDocs} dokumen</div>` : ""}
+    <a href="${href}" class="btn">Baca Selengkapnya</a></div>`;
             }
+            return `<div class="card">${thumb}<h3>${d.title}</h3><div class="date">${formatWIB(d.createdAt)}${d.updatedAt ? `<div style="font-size:.6rem;opacity:.7;">di-edit pada ${formatWIB(d.updatedAt)}</div>` : ""}</div>
+  <p>${(d.content || "").substring(0, 120)}...</p><a href="${href}" class="btn">Baca Selengkapnya</a></div>`;
         }
-
-        async function loadAllPosts() {
-            contentList.innerHTML = "";
-            noResultsEl.style.display = "none";
-            const categories = ["Berita", "Pengumuman", "Peraturan"];
+        function resetPagination() { lastVisible = null; reachedEnd = false; contentList.innerHTML = ""; loadMoreBtn.style.display = "inline-block"; }
+        async function loadCategory(cat, append = false) {
+            if (isLoading || reachedEnd) return; isLoading = true; noResultsEl.style.display = "none"; currentCategory = cat;
+            if (!append) { contentList.innerHTML = ""; lastVisible = null; reachedEnd = false; }
             try {
-                for (const cat of categories) {
-                    const q = query(collection(db, "posts"), where("category", "==", cat), where("status", "==", "Aktif"), orderBy("createdAt", "desc"));
-                    const snap = await getDocs(q);
-                    snap.forEach(docSnap => {
-                        const d = docSnap.data();
-                        contentList.insertAdjacentHTML("beforeend", renderCard(docSnap.id, d));
-                    });
+                let q = query(collection(db, "posts"), where("category", "==", cat), where("status", "==", "Aktif"), orderBy("createdAt", "desc"), limit(PAGE_SIZE));
+                if (lastVisible) q = query(q, startAfter(lastVisible));
+                const snap = await getDocs(q);
+                if (snap.empty && !append) { noResultsEl.style.display = "block"; loadMoreBtn.style.display = "none"; }
+                else {
+                    snap.forEach(d => contentList.insertAdjacentHTML("beforeend", renderCard(d.id, d.data())));
+                    lastVisible = snap.docs[snap.docs.length - 1];
+                    if (snap.size < PAGE_SIZE) { reachedEnd = true; loadMoreBtn.style.display = "none"; } else loadMoreBtn.style.display = "inline-block";
                 }
-            } catch (err) { console.error(err); }
+            } catch (e) { console.error(e); } isLoading = false;
         }
 
+        /* NAVIGATION */
         document.querySelectorAll("nav a").forEach(a => {
-            a.addEventListener("click", (e) => {
+            a.addEventListener("click", e => {
                 e.preventDefault();
                 document.querySelectorAll("nav a").forEach(n => n.classList.remove("active"));
                 a.classList.add("active");
-                const cat = a.dataset.tab;
-                searchWrap.classList.remove("open");
-                searchInput.value = "";
-                loadCategory(cat);
+                resetPagination();
+                loadCategory(a.dataset.tab);
             });
         });
 
-        async function loadCategory(category) {
-            contentList.innerHTML = "";
-            noResultsEl.style.display = "none";
+        /* SEARCH TOGGLE + REALTIME */
+        searchToggle.addEventListener("click", () => {
+            const open = !searchWrap.classList.contains("open");
+            searchWrap.classList.toggle("open");
+            if (open) setTimeout(() => searchInput.focus(), 180);
+            else { searchInput.value = ""; resetPagination(); loadCategory(currentCategory); }
+        });
+        document.addEventListener("click", e => {
+            const inside = searchWrap.contains(e.target) || searchToggle.contains(e.target);
+            if (!inside && searchWrap.classList.contains("open")) { searchWrap.classList.remove("open"); searchInput.value = ""; resetPagination(); loadCategory(currentCategory); }
+        });
+        document.addEventListener("keydown", e => {
+            if (e.key === "Escape" && searchWrap.classList.contains("open")) { searchWrap.classList.remove("open"); searchInput.value = ""; resetPagination(); loadCategory(currentCategory); }
+        });
+
+        /* CACHING + SEARCH */
+        let allPostsCache = [];
+        async function cacheAllPosts() {
             try {
-                const q = query(collection(db, "posts"), where("category", "==", category), where("status", "==", "Aktif"), orderBy("createdAt", "desc"));
-                const snap = await getDocs(q);
-                if (snap.empty) { noResultsEl.style.display = "block"; }
-                snap.forEach(docSnap => {
-                    const d = docSnap.data();
-                    contentList.insertAdjacentHTML("beforeend", renderCard(docSnap.id, d));
-                });
-            } catch (err) { console.error(err); }
+                const snap = await getDocs(query(collection(db, "posts"), where("status", "==", "Aktif"), orderBy("createdAt", "desc")));
+                allPostsCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                cacheStatus.textContent = `${allPostsCache.length} berita siap dicari 🔎`;
+                setTimeout(() => cacheStatus.style.display = "none", 3000);
+            } catch (err) { cacheStatus.textContent = "Gagal memuat data"; console.error(err); }
         }
+        cacheAllPosts();
 
-        function filterCards(q) {
-            const cards = [...document.querySelectorAll(".card")];
-            if (!q) { cards.forEach(c => c.style.display = ""); noResultsEl.style.display = "none"; return; }
-            let visible = 0;
-            cards.forEach(c => {
-                const t = c.dataset.title || "", k = c.dataset.content || "";
-                const show = t.includes(q) || k.includes(q);
-                c.style.display = show ? "" : "none"; if (show) visible++;
-            });
-            noResultsEl.style.display = visible ? "none" : "block";
-        }
-
-        searchInput.addEventListener("keyup", async (e) => {
+        searchInput.addEventListener("input", e => {
             const q = e.target.value.trim().toLowerCase();
-            if (q) {
-                const cards = document.querySelectorAll(".card");
-                const loadedCats = new Set([...cards].map(c => c.dataset.category));
-                if (loadedCats.size < 3) await loadAllPosts();
-                filterCards(q);
-            } else {
-                const active = document.querySelector("nav a.active");
-                if (active) loadCategory(active.dataset.tab);
-                else loadAllPosts();
-            }
+            if (!q) { resetPagination(); loadCategory(currentCategory); return; }
+            contentList.innerHTML = ""; noResultsEl.style.display = "none"; loadMoreBtn.style.display = "none";
+            const found = allPostsCache.filter(d => {
+                const t = (d.title || "").toLowerCase(), c = (d.content || "").toLowerCase();
+                return t.includes(q) || c.includes(q);
+            });
+            if (found.length === 0) { noResultsEl.style.display = "block"; }
+            else found.forEach(d => contentList.insertAdjacentHTML("beforeend", renderCard(d.id, d)));
         });
 
-        loadAllPosts();
+        /* INITIAL LOAD */
+        loadCategory("Berita");
     </script>
 </body>
 
