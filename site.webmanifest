@@ -1,7 +1,7 @@
 {
     "name": "News — by @TOMMY",
     "short_name": "News t-o-m.my.id",
-    "start_url": "https://news.t-o-m.my.id/?source=pwa",
+    "start_url": "https://news.t-o-m.my.id/",
     "scope": "https://news.t-o-m.my.id/",
     "display": "standalone",
     "orientation": "portrait-primary",
