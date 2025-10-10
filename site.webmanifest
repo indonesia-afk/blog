@@ -26,7 +26,7 @@
     },
     {
       "src": "https://indonesia-afk.github.io/blog/favicon.ico",
-      "sizes": "256x256",
+      "sizes": "any",
       "type": "image/x-icon"
     }
   ]
